@@ -1,9 +1,6 @@
 # Database data
 db-data/
 
-# Docker build artifacts  
-*.dockerfile
-
 # Go binaries
 */brokerApp
 */authApp
