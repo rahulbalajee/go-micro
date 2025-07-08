@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -13,6 +14,9 @@ import (
 type LogRepository interface {
 	Insert(entry LogEntry) error
 	All() ([]*LogEntry, error)
+	Update(entry LogEntry) (*mongo.UpdateResult, error)
+	DropCollection() error
+	GetOne(id string) (*LogEntry, error)
 }
 
 func NewLogRepository(mongo *mongo.Client) LogRepository {
@@ -82,4 +86,67 @@ func (l *MongoLogRepository) All() ([]*LogEntry, error) {
 	}
 
 	return logs, nil
+}
+
+func (l *MongoLogRepository) GetOne(id string) (*LogEntry, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	collection := l.client.Database("logs").Collection("logs")
+
+	docID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+
+	var entry LogEntry
+	err = collection.FindOne(ctx, bson.M{"_id": docID}).Decode(&entry)
+	if err != nil {
+		return nil, err
+	}
+
+	return &entry, nil
+}
+
+func (l *MongoLogRepository) DropCollection() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	collection := l.client.Database("logs").Collection("logs")
+
+	if err := collection.Drop(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (l *MongoLogRepository) Update(entry LogEntry) (*mongo.UpdateResult, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	collection := l.client.Database("logs").Collection("logs")
+
+	docID, err := primitive.ObjectIDFromHex(entry.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := collection.UpdateOne(
+		ctx,
+		bson.M{"_id": docID},
+		bson.D{
+			{"$set", bson.D{
+				{"name", entry.Name},
+				{"data", entry.Data},
+				{"updated_at", time.Now()},
+			}},
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
