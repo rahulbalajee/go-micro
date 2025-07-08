@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"log-service/data"
+	"net/http"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,9 +19,8 @@ const (
 	gRpcPort = "50001"
 )
 
-var client *mongo.Client
-
 type Config struct {
+	LogRepo data.LogRepository
 }
 
 func main() {
@@ -27,16 +29,34 @@ func main() {
 		log.Panic(err)
 	}
 
-	client = mongoClient
-
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	defer func() {
-		if err = client.Disconnect(ctx); err != nil {
+		if err = mongoClient.Disconnect(ctx); err != nil {
 			panic(err)
 		}
 	}()
+
+	logRepo := data.NewLogRepository(mongoClient)
+
+	app := Config{
+		LogRepo: logRepo,
+	}
+
+	go app.serve()
+}
+
+func (app *Config) serve() {
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%s", webPort),
+		Handler: app.routes(),
+	}
+
+	err := srv.ListenAndServe()
+	if err != nil {
+		log.Panic(err)
+	}
 }
 
 func connectToMongo() (*mongo.Client, error) {

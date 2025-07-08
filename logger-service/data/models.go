@@ -38,9 +38,12 @@ type MongoLogRepository struct {
 }
 
 func (l *MongoLogRepository) Insert(entry LogEntry) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
 	collection := l.client.Database("logs").Collection("logs")
 
-	_, err := collection.InsertOne(context.TODO(), LogEntry{
+	_, err := collection.InsertOne(ctx, LogEntry{
 		Name:      entry.Name,
 		Data:      entry.Data,
 		CreatedAt: time.Now(),
@@ -63,7 +66,7 @@ func (l *MongoLogRepository) All() ([]*LogEntry, error) {
 	opts := options.Find()
 	opts.SetSort(bson.D{{"created_at", -1}})
 
-	cursor, err := collection.Find(context.TODO(), bson.D{}, opts)
+	cursor, err := collection.Find(ctx, bson.D{}, opts)
 	if err != nil {
 		log.Println("Finding all logs error:", err)
 		return nil, err
