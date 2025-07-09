@@ -161,5 +161,7 @@ func (m *Mail) getEncryption(s string) mail.Encryption {
 		return mail.EncryptionNone
 	case "default":
 		return mail.EncryptionSTARTTLS
+	default:
+		return mail.EncryptionSTARTTLS
 	}
 }
