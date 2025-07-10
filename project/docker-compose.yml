@@ -63,6 +63,17 @@ services:
       FROM_NAME: "John Smith"
       FROM_ADDRESS: "john@smith.com"
 
+  listener-service:
+    build:
+      context: ./../listener-service
+      dockerfile: ./../listener-service/listener-service.dockerfile
+    restart: unless-stopped
+    ports:
+      - "8083:80"
+    deploy:
+      mode: replicated
+      replicas: 1
+
   postgres:
     image: "postgres:14.2"
     ports:
