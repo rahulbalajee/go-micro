@@ -2,6 +2,7 @@ FRONT_END_BINARY=frontApp
 BROKER_BINARY=brokerApp
 AUTHENTICATION_BINARY=authApp
 LOGGER_BINARY=loggerServiceApp
+MAIL_BINARY=mailServiceApp
 
 ## up: starts all containers in the background without forcing build
 .PHONY: up
@@ -12,7 +13,7 @@ up:
 
 ## up_build: stops docker compose (if running), builds all projects and starts docker compose
 .PHONY: up_build
-up_build: build_broker build_auth build_logger
+up_build: build_broker build_auth build_logger build_mail
 	@echo "Stopping docker images (if running...)"
 	docker compose down
 	@echo "Building (when required) and starting docker images..."
@@ -45,6 +46,13 @@ build_logger:
 build_auth:
 	@echo "Building authentication binary..."
 	cd ../authentication-service && env GOOS=linux CGO_ENABLED=0 go build -o ${AUTHENTICATION_BINARY} ./cmd/api
+	@echo "Done!"
+
+## build_mail: builds the mail binary as a linux executable
+.PHONY: build_mail
+build_mail:
+	@echo "Building mail binary..."
+	cd ../mail-service && env GOOS=linux CGO_ENABLED=0 go build -o ${MAIL_BINARY} ./cmd/api
 	@echo "Done!"
 
 ## build_front: builds the front end binary
