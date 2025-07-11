@@ -46,7 +46,14 @@ func main() {
 		LogRepo: logRepo,
 	}
 
-	err = rpc.Register(new(RPCServer))
+	rpcServer := &RPCServer{
+		logRepo: logRepo,
+	}
+	err = rpc.Register(rpcServer)
+	if err != nil {
+		log.Panic(err)
+	}
+
 	go app.rpcListen()
 
 	srv := &http.Server{
