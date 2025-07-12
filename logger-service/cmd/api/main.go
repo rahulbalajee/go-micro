@@ -56,6 +56,8 @@ func main() {
 
 	go app.rpcListen()
 
+	go app.gRPCListen()
+
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", webPort),
 		Handler: app.routes(),
