@@ -13,7 +13,7 @@ import (
 
 type LogServer struct {
 	logs.UnimplementedLogServiceServer
-	Models data.MongoLogRepository
+	logRepo data.LogRepository
 }
 
 func (l *LogServer) WriteLog(ctx context.Context, req *logs.LogRequest) (*logs.LogResponse, error) {
@@ -24,7 +24,7 @@ func (l *LogServer) WriteLog(ctx context.Context, req *logs.LogRequest) (*logs.L
 		Data: input.Data,
 	}
 
-	err := l.Models.Insert(logEntry)
+	err := l.logRepo.Insert(logEntry)
 	if err != nil {
 		res := &logs.LogResponse{Result: "failed"}
 		return res, err
@@ -42,7 +42,10 @@ func (app *Config) gRPCListen() {
 
 	s := grpc.NewServer()
 
-	logs.RegisterLogServiceServer(s, &LogServer{Models: data.MongoLogRepository{}})
+	logServer := &LogServer{
+		logRepo: app.LogRepo,
+	}
+	logs.RegisterLogServiceServer(s, logServer)
 
 	log.Printf("gRPC server started on port %s", gRpcPort)
 
