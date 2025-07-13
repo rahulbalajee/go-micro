@@ -2,9 +2,7 @@ version: "3.8"
 
 services:
   broker-service:
-    image: rbalajee/broker-service:1.0.0
-    ports:
-      - "8080:80"
+    image: rbalajee/broker-service:1.0.1
     deploy:
       mode: replicated
       replicas: 1
@@ -24,7 +22,7 @@ services:
       DSN: "host=postgres port=5432 user=postgres password=password dbname=users sslmode=disable timezone=UTC connect_timeout=5"
   
   logger-service:
-    image: rbalajee/logger-service:1.0.0
+    image: rbalajee/logger-service:1.0.1
     deploy:
       mode: replicated
       replicas: 1
