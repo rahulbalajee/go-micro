@@ -1,6 +1,26 @@
 version: "3.8"
 
 services:
+  caddy:
+    image: caddy
+    deploy:
+      mode: replicated
+      replicas: 1
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+
+  front-end:
+    image: rbalajee/front-end:1.0.1
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      BROKER_URL: "http://backend"
+
   broker-service:
     image: rbalajee/broker-service:1.0.1
     deploy:
@@ -72,7 +92,6 @@ services:
     image: "postgres:14.2"
     ports:
       - "5432:5432"
-    restart: unless-stopped
     deploy:
       mode: replicated
       replicas: 1
@@ -82,3 +101,7 @@ services:
       POSTGRES_DB: users
     volumes:
       - ./db-data/postgres/:/var/lib/postgresql/data/
+
+volumes:
+  caddy_data:
+    external: true
