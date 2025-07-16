@@ -21,5 +21,10 @@
 		{
 			"path": "listener-service"
 		}
-	]
+	],
+	"settings": {
+		"yaml.schemas": {
+			"kubernetes://schema/v1%40service": "file:///Users/rbalajee/Projects/go-micro/project/k8s/rabbit.yaml"
+		}
+	}
 }
